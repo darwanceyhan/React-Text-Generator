@@ -9,6 +9,7 @@ export default class Input extends Component<{}> {
   context!: ParagraphContextType;
 
   getText(): void {
+    this.context.setParagraph("");
     axios
       .get(
         `https://baconipsum.com/api/?type=all-meat&paras=${
@@ -82,7 +83,7 @@ export default class Input extends Component<{}> {
           <hr />
           <div className="row mt-5">
             <div className="col-sm-8 mx-auto" style={{ borderRadius: "10px" }}>
-              {this.context.Value !== 0 ? (
+              {this.context.Paragraph !== "" ? (
                 <p>{this.context.Paragraph}</p>
               ) : (
                 <div>
