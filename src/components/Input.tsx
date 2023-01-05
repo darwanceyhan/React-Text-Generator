@@ -82,7 +82,10 @@ export default class Input extends Component<{}> {
           </div>
           <hr />
           <div className="row mt-5">
-            <div className="col-sm-8 mx-auto" style={{ borderRadius: "10px" }}>
+            <div
+              className="col-sm-8 mx-auto bg-dark"
+              style={{ borderRadius: "10px" }}
+            >
               {this.context.Paragraph !== "" ? (
                 <p>{this.context.Paragraph}</p>
               ) : (
