@@ -1,29 +1,45 @@
-import React from "react";
-import { createContext } from "react";
+import React, { createContext } from 'react'
 
-export type ParagraphContextType = {
-  Value: number;
-  setValue: (paragraph: number) => void;
-  Format: boolean;
-  setFormat: (format: boolean) => void;
-  Paragraph: string;
-  setParagraph: (paragraph: string) => void;
-};
+export interface ParagraphContextInterface {
+  paragraphCount: number
+  outputFormat: boolean
+  output: string
 
-export const ParagraphContext = createContext({} as ParagraphContextType);
+  setParagraphCount: (paragraphCount: number) => void
+  setOutputFormat: (format: boolean) => void
+  setOutput: (output: string) => void
+}
+
+export const ParagraphContext = createContext<ParagraphContextInterface>({
+  paragraphCount: 0,
+  outputFormat: true,
+  output: '',
+
+  setParagraphCount: () => {},
+  setOutputFormat: () => {},
+  setOutput: () => {}
+})
 
 export const ParagraphProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
+  children
 }) => {
-  const [Value, setValue] = React.useState<number>(0);
-  const [Format, setFormat] = React.useState<boolean>(true);
-  const [Paragraph, setParagraph] = React.useState<string>("");
+  const [paragraphCount, setParagraphCount] = React.useState<number>(0)
+  const [outputFormat, setOutputFormat] = React.useState<boolean>(true)
+  const [Paragraph, setParagraph] = React.useState<string>('')
 
   return (
     <ParagraphContext.Provider
-      value={{ Value, setValue, Format, setFormat, Paragraph, setParagraph }}
+      value={{
+        paragraphCount,
+        outputFormat,
+        output: Paragraph,
+
+        setParagraphCount,
+        setOutputFormat,
+        setOutput: setParagraph
+      }}
     >
       {children}
     </ParagraphContext.Provider>
-  );
-};
+  )
+}

@@ -1,47 +1,63 @@
-import axios from "axios";
-import { Component } from "react";
-import { ParagraphContext, ParagraphContextType } from "../context/context";
-import AlignHorizontalLeftIcon from "@mui/icons-material/AlignHorizontalLeft";
-import { Skeleton } from "@mui/material";
+import axios, { AxiosResponse } from 'axios'
+import React, { ChangeEvent, Component } from 'react'
+import { ParagraphContextInterface } from '../context/context'
+import AlignHorizontalLeftIcon from '@mui/icons-material/AlignHorizontalLeft'
+import { Skeleton } from '@mui/material'
 
 export default class Input extends Component<{}> {
-  static contextType = ParagraphContext;
-  context!: ParagraphContextType;
+  context: ParagraphContextInterface = this.context
 
-  getText(): void {
-    this.context.setParagraph("");
-    axios
+  async callTextGeneratorAPI (): Promise<AxiosResponse<any, any>> {
+    return await axios
       .get(
-        `https://baconipsum.com/api/?type=all-meat&paras=${
-          this.context.Value
-        }&start-with-lorem=1&format=${
-          this.context.Format === true ? "html" : "text"
-        }`
+        'https://baconipsum.com/api/?' +
+        'type=all-meat&' +
+        `paras=${this.context.paragraphCount}` +
+        '&start-with-lorem=1' +
+        `&format=${this.context.outputFormat ? 'html' : 'text'}`
       )
-      .then((res) => {
-        this.context.setParagraph(res.data);
-      });
-  }
-  changeText(e: number): void {
-    this.context.setValue(e);
-
-    this.getText();
-  }
-  async ChangeFormat(): Promise<void> {
-    await this.context.setFormat(!this.context.Format);
-    this.getText();
   }
 
-  render(): JSX.Element {
+  onParagraphCountChange (e: ChangeEvent<HTMLInputElement>): void {
+    console.log(e.target)
+    const paragraphCount = parseInt(e.target.value)
+    this.context.setParagraphCount(paragraphCount)
+
+    this.updateOuputArea()
+  }
+
+  showError (error: Error): void {
+    this.context.setOutput(`Error: ${error.message}`)
+  }
+
+  updateOuputArea (): void {
+    this.context.setOutput('')
+
+    this.callTextGeneratorAPI()
+      .then((response) => {
+        this.context.setOutput(response.data)
+      })
+      .catch((error) => {
+        this.showError(error as Error)
+      })
+  }
+
+  onFormatSwitchChange (): void {
+    this.context.setOutputFormat(!this.context.outputFormat)
+
+    this.updateOuputArea()
+  }
+
+  render (): JSX.Element {
     return (
       <div className="container text-white">
         <div className="row mb-5">
           <h1 className="mt-5">
-            {" "}
+            {' '}
             <AlignHorizontalLeftIcon
               className="text-white"
               style={{ fontSize: 50 }}
-            />{" "}
+            />{' '}
             REACT SIMPLE TEXT GENERATOR
           </h1>
         </div>
@@ -54,10 +70,11 @@ export default class Input extends Component<{}> {
               type="number"
               min={0}
               className="form-control w-50"
-              value={this.context.Value}
-              onChange={(e) => this.changeText(Number(e.target.value))}
+              value={this.context.paragraphCount}
+              // TODO: fix here
+              onChange={this.onParagraphCountChange.bind(this)}
             />
-          </div>{" "}
+          </div>{' '}
           <div className="col-sm-2 mt-4">
             <div className="form-check form-switch">
               <input
@@ -65,14 +82,14 @@ export default class Input extends Component<{}> {
                 type="checkbox"
                 role="switch"
                 id="flexSwitchCheckDefault"
-                onClick={() => this.ChangeFormat()}
-                checked={this.context.Format}
+                onChange={this.onFormatSwitchChange}
+                checked={this.context.outputFormat}
               />
               <label
                 className={
-                  this.context.Format === true
-                    ? "text-success form-check-label"
-                    : "text-danger form-check-label"
+                  this.context.outputFormat
+                    ? 'text-success form-check-label'
+                    : 'text-danger form-check-label'
                 }
                 htmlFor="flexRadioDefault2"
               >
@@ -84,11 +101,13 @@ export default class Input extends Component<{}> {
           <div className="row mt-5">
             <div
               className="col-sm-8 mx-auto bg-dark"
-              style={{ borderRadius: "10px" }}
+              style={{ borderRadius: '10px' }}
             >
-              {this.context.Paragraph !== "" ? (
-                <p>{this.context.Paragraph}</p>
-              ) : (
+              {this.context.output !== ''
+                ? (
+                <p>{this.context.output}</p>
+                  )
+                : (
                 <div>
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map(
                     (item) => (
@@ -96,11 +115,11 @@ export default class Input extends Component<{}> {
                     )
                   )}
                 </div>
-              )}
+                  )}
             </div>
           </div>
         </div>
       </div>
-    );
+    )
   }
 }
