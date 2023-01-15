@@ -1,35 +1,54 @@
-import axios from "axios";
-import { Component } from "react";
-import { ParagraphContext, ParagraphContextType } from "../context/context";
+import axios, { AxiosResponse } from "axios";
+import React, { ChangeEvent, Component } from "react";
 import AlignHorizontalLeftIcon from "@mui/icons-material/AlignHorizontalLeft";
 import { Skeleton } from "@mui/material";
+import ParagraphContext from "../context/context";
 
 export default class Input extends Component<{}> {
   static contextType = ParagraphContext;
-  context!: ParagraphContextType;
+  context!: React.ContextType<typeof ParagraphContext>;
 
-  getText(): void {
-    this.context.setParagraph("");
-    axios
-      .get(
-        `https://baconipsum.com/api/?type=all-meat&paras=${
-          this.context.Value
-        }&start-with-lorem=1&format=${
-          this.context.Format === true ? "html" : "text"
-        }`
-      )
-      .then((res) => {
-        this.context.setParagraph(res.data);
+  constructor(props: {}) {
+    super(props);
+
+    this.onParagraphCountChange = this.onParagraphCountChange.bind(this);
+    this.onFormatSwitchChange = this.onFormatSwitchChange.bind(this);
+  }
+
+  async callTextGeneratorAPI(): Promise<AxiosResponse<any, any>> {
+    return await axios.get(
+      "https://baconipsum.com/api/?" +
+        "type=all-meat&" +
+        `paras=${this.context.paragraphCount}` +
+        "&start-with-lorem=1" +
+        `&format=${this.context.outputFormat ? "html" : "text"}`
+    );
+  }
+
+  onParagraphCountChange(e: ChangeEvent<HTMLInputElement>): void {
+    const paragraphCount = parseInt(e.target.value);
+    this.context.setParagraphCount(paragraphCount);
+
+    this.updateOuputArea();
+  }
+
+  showError(error: Error): void {
+    this.context.setOutput(`Error: ${error.message}`);
+  }
+
+  updateOuputArea(): void {
+    this.callTextGeneratorAPI()
+      .then((response) => {
+        this.context.setOutput(response.data);
+      })
+      .catch((error) => {
+        this.showError(error as Error);
       });
   }
-  changeText(e: number): void {
-    this.context.setValue(e);
 
-    this.getText();
-  }
-  async ChangeFormat(): Promise<void> {
-    await this.context.setFormat(!this.context.Format);
-    this.getText();
+  async onFormatSwitchChange(e: ChangeEvent<HTMLInputElement>): Promise<void> {
+    await this.context.setOutputFormat(e.target.checked);
+    this.updateOuputArea();
   }
 
   render(): JSX.Element {
@@ -54,8 +73,8 @@ export default class Input extends Component<{}> {
               type="number"
               min={0}
               className="form-control w-50"
-              value={this.context.Value}
-              onChange={(e) => this.changeText(Number(e.target.value))}
+              value={this.context.paragraphCount}
+              onChange={this.onParagraphCountChange}
             />
           </div>{" "}
           <div className="col-sm-2 mt-4">
@@ -65,12 +84,12 @@ export default class Input extends Component<{}> {
                 type="checkbox"
                 role="switch"
                 id="flexSwitchCheckDefault"
-                onClick={() => this.ChangeFormat()}
-                checked={this.context.Format}
+                checked={this.context.outputFormat}
+                onChange={this.onFormatSwitchChange}
               />
               <label
                 className={
-                  this.context.Format === true
+                  this.context.outputFormat
                     ? "text-success form-check-label"
                     : "text-danger form-check-label"
                 }
@@ -86,8 +105,8 @@ export default class Input extends Component<{}> {
               className="col-sm-8 mx-auto bg-dark"
               style={{ borderRadius: "10px" }}
             >
-              {this.context.Paragraph !== "" ? (
-                <p>{this.context.Paragraph}</p>
+              {this.context.output !== "" ? (
+                <p>{this.context.output}</p>
               ) : (
                 <div>
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map(

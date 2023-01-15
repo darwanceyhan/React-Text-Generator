@@ -1,29 +1,63 @@
-import React from "react";
-import { createContext } from "react";
+import React, { createContext } from "react";
 
-export type ParagraphContextType = {
-  Value: number;
-  setValue: (paragraph: number) => void;
-  Format: boolean;
-  setFormat: (format: boolean) => void;
-  Paragraph: string;
-  setParagraph: (paragraph: string) => void;
-};
+export interface ParagraphContextInterface {
+  paragraphCount: number;
+  outputFormat: boolean;
+  output: string;
 
-export const ParagraphContext = createContext({} as ParagraphContextType);
+  setParagraphCount: (paragraphCount: number) => void;
+  setOutputFormat: (outputFormat: boolean) => void;
+  setOutput: (output: string) => void;
+}
 
-export const ParagraphProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [Value, setValue] = React.useState<number>(0);
-  const [Format, setFormat] = React.useState<boolean>(true);
-  const [Paragraph, setParagraph] = React.useState<string>("");
+export const ParagraphContext = createContext<ParagraphContextInterface>({
+  paragraphCount: 0,
+  outputFormat: true,
+  output: "",
 
-  return (
-    <ParagraphContext.Provider
-      value={{ Value, setValue, Format, setFormat, Paragraph, setParagraph }}
-    >
-      {children}
-    </ParagraphContext.Provider>
-  );
-};
+  setParagraphCount: () => {},
+  setOutputFormat: () => {},
+  setOutput: () => {},
+});
+
+export class ParagraphProvider extends React.Component<{
+  children: React.ReactNode;
+}> {
+  state = {
+    paragraphCount: 0,
+    outputFormat: true,
+    output: "",
+  };
+
+  setParagraphCount = (paragraphCount: number): void => {
+    this.setState({ paragraphCount });
+  };
+
+  setOutputFormat = (outputFormat: boolean): void => {
+    this.setState({ outputFormat });
+  };
+
+  setOutput = (output: string): void => {
+    this.setState({ output });
+  };
+
+  render(): JSX.Element {
+    const { paragraphCount, outputFormat, output } = this.state;
+    const { setParagraphCount, setOutputFormat, setOutput } = this;
+    return (
+      <ParagraphContext.Provider
+        value={{
+          paragraphCount,
+          outputFormat,
+          output,
+          setParagraphCount,
+          setOutputFormat,
+          setOutput,
+        }}
+      >
+        {this.props.children}
+      </ParagraphContext.Provider>
+    );
+  }
+}
+export default ParagraphContext;
