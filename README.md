@@ -1,54 +1,50 @@
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# Installation
 
-Currently, two official plugins are available:
+`git clone` this project
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+`npm install` to install dependencies
 
-## Expanding the ESLint configuration
+`npm run dev` to start development build
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+----------
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+# What is goal of this project
+
+-   When developing UI, sometimes we need a word template that contains spacing properly — this project solves that.
+    
+-   I also want to show how to use [react/tanstackQuery/queryKey](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)
+    
+
+----------
+
+# What is queryKey
+- TanStack Query uses `queryKey` to uniquely identify each query. The `queryKey` is an array, and you can include variables in it. When any element in the `queryKey` array changes, TanStack Query considers it a new query.
+-   Let's think like this: this project continuously fetches data, but the fetched **data** never changes — or doesn't change for a certain time — so we don’t have to fetch the **data** again. We can use caching instead.
+    
+-   When fetching data, it uses a `queryKey`. You can set the `queryKey` and state to define which data to fetch. For example:
+
+```
+["paragraph", 1] = dataOne  
+["paragraph", 2] = dataTwo
+ ```
+ -   When `paragraphCount` is 1, the `queryKey` is `["paragraph", 1]`. TanStack Query caches the data fetched for this key.
+    
+-   When `paragraphCount` is 2, the `queryKey` is `["paragraph", 2]`. This is a different key, so TanStack Query will fetch and cache the data for this key.
+    
+-   If you switch back to `paragraphCount` 1, TanStack Query will look for `["paragraph", 1]` in its cache. If found and not stale, it will use the cached data.
+
+```ts
+
+
+const { isFetching, error, data, refetch } = useQuery({
+  queryKey: ["paragraph", paragraphCount], // set paragraphCount to defines the query
+  queryFn: () =>
+    fetch(
+      `https://baconipsum.com/api/?type=all-meat&paras=${paragraphCount}&start-with-lorem=1&format=html`
+    ).then((res) => res.text()),
+  enabled: false,
+});
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+You can check more usage examples here: [TanStack Query examples](https://tanstack.com/query/latest/docs/framework/react/examples/basic) 
