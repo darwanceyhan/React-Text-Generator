@@ -11,30 +11,25 @@ import {
   Switch,
   Typography,
 } from "@mui/material";
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import useFetchParagraph from "./query/paragraph.query";
 
 function App() {
   const [paragraphCount, setParagraphCount] = useState<number>(1);
   const [isHtmlFormat, setIsHtmlFormat] = useState<boolean>(false);
 
-  const { isFetching, error, data, refetch } = useQuery({
-    queryKey: ["paragraph", paragraphCount],
-    queryFn: () =>
-      fetch(
-        `https://baconipsum.com/api/?type=all-meat&paras=${paragraphCount}&start-with-lorem=1&format=html`
-      ).then((res) => res.text()),
-    enabled: false,
-  });
-
-  const handleFetchParagraph = () => {
-    refetch();
-  };
+  const {
+    isFetching,
+    isSuccess,
+    error,
+    data: paragraphData,
+    refetch,
+  } = useFetchParagraph(paragraphCount);
 
   const handleCopy = () => {
-    if (!data) return;
+    if (!isSuccess) return;
     if (isHtmlFormat) {
-      navigator.clipboard.writeText(data);
+      navigator.clipboard.writeText(paragraphData);
     } else {
       const element = document.getElementById("text");
       const textToCopy = element?.textContent || "";
@@ -74,7 +69,7 @@ function App() {
       </Grid>
 
       <Grid>
-        <Button variant="contained" onClick={handleFetchParagraph}>
+        <Button variant="contained" onClick={() => refetch()}>
           Fetch Paragraphs
         </Button>
       </Grid>
@@ -91,13 +86,13 @@ function App() {
           </Grid>
         )}
         {error && <Typography color="error">{error.message}</Typography>}
-        {data && (
+        {paragraphData && (
           <Paper elevation={3} sx={{ p: 3, backgroundColor: "#fafafa" }}>
             <Button variant="outlined" sx={{ mt: 2 }} onClick={handleCopy}>
               Copy Paragraph
             </Button>
             {isHtmlFormat ? (
-              <div id="html">{`${data}`}</div>
+              <div id="html">{`${paragraphData}`}</div>
             ) : (
               <div
                 id="text"
@@ -107,7 +102,7 @@ function App() {
                   lineHeight: 1.6,
                 }}
                 dangerouslySetInnerHTML={{
-                  __html: data,
+                  __html: paragraphData,
                 }}
               />
             )}
